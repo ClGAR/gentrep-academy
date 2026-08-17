@@ -19,7 +19,7 @@ export function DemoWalkLadder({
     <div className="demo no-print">
       <div className="demo-label">Demo · walk the ladder</div>
       <p className="demo-note">
-        Completes a rank the way it would really be earned — documents agreed, events scanned, demonstrations signed
+        Completes a rank the way it would really be earned — documents agreed, attendance recorded, demonstrations signed
         off, derived ones by a trainee&apos;s certificate — then issues the certificate.
       </p>
       <div className="demo-row">

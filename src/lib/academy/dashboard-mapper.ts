@@ -88,7 +88,7 @@ export function requirementHelper(input: {
       : "No dates posted yet";
   }
   if (requirement.type === "document") {
-    return `Video ${requirement.minutes ?? ""}${requirement.documentId ? " · then read and agree" : ""}`.trim();
+    return `Review ${requirement.minutes ?? ""}${requirement.documentId ? " · then read and agree" : ""}`.trim();
   }
   return requirement.note ?? "";
 }

@@ -117,7 +117,7 @@ export function requirementActionLabel(
   compact = false,
 ) {
   if (requirement.type === "document") {
-    return compact ? "Watch" : "Watch the video";
+    return compact ? "Review" : "Review the item";
   }
   if (requirement.type === "attendance") {
     return requirement.status === "missed"

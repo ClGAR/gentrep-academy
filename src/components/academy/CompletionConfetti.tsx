@@ -21,7 +21,7 @@ export function CompletionConfetti({ fire }: { fire: number }) {
 
   useEffect(() => {
     if (!fire || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const colors = [GA.gold, GA.blue, GA.navy, GA.mark, GA.good, "#fff"];
+    const colors = [GA.gold, GA.blue, GA.ink, GA.mark, GA.good, GA.card];
     const timer = window.setTimeout(() => {
       setPieces(
         Array.from({ length: 80 }, (_, index) => ({

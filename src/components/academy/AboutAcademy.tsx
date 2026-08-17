@@ -1,24 +1,27 @@
 "use client";
 
 import type { RankRecord } from "@/lib/academy/types";
-import { AcademyDialog } from "@/components/academy/AcademyDialog";
+import {
+  AcademyDialog,
+  AcademyDialogCloseButton,
+} from "@/components/academy/AcademyDialog";
 import { RankMark } from "@/components/academy/RankMark";
 import { rankInsigniaSize } from "@/components/academy/helpers";
 
 const PROOF_ROWS = [
-  ["Watch and agree", "You agree in the app; the record is kept"],
-  ["Attend", "The scan at the door"],
-  ["Show it", "An upline watches and signs it off"],
+  ["Review and agree", "You review the item and agree in the app; the record is kept"],
+  ["Attend", "Authorized event staff records whether you attended"],
+  ["Show it", "Your assigned trainer watches and signs it off"],
   ["Earned by your trainee", "Their certificate, not your word"],
 ] as const;
 
 const CHANGE_ROWS = [
   ["Cannot make it?", "Open the date and cancel. The seat goes back to someone else."],
-  ["Want a different date?", "Tap Switch. No need to cancel first."],
-  ["Session full?", "Join the waitlist and you'll be told when a seat opens."],
+  ["Want a different date?", "Cancel your current booking first, then reserve another posted date."],
+  ["Session full?", "Join the waitlist. Your place appears in the Academy when it changes."],
   ["Missed one?", "Pick another date. Nothing else you've done is lost."],
   ["No dates posted?", "That one is waiting on us, not on you."],
-  ["Is there a deadline?", "No. Most finish a level in about three weeks."],
+  ["How long does a level take?", "Work through each posted requirement at the pace available to you."],
 ] as const;
 
 export function AboutAcademy({
@@ -35,12 +38,10 @@ export function AboutAcademy({
           <h2 className="ant h1">About Gentrep Academy</h2>
           <p className="fine">Read this once. About five minutes.</p>
         </div>
-        <button className="tap pill" onClick={onClose} aria-label="Close">
-          Close
-        </button>
+        <AcademyDialogCloseButton onClose={onClose} />
       </div>
       <p className="lead">
-        The Academy is where you learn this business, one level at a time. Every level is a short course: sessions you attend in person, and a scan at the door that records you were there. You never tick your own boxes — that is what makes them worth something.
+        The Academy is where you learn this business, one level at a time. Every level is a short course made of items you review, sessions you attend in person, and demonstrations your assigned trainer verifies. You never record your own attendance or sign-off — that is what makes each completion worth something.
       </p>
       <h3 className="sec mt">The five levels</h3>
       {ranks.map((rank) => (

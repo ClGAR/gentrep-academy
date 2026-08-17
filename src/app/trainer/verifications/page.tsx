@@ -1,25 +1,32 @@
 import { TrainerQueue } from "@/components/ops/TrainerQueue";
+import { OperationsShell } from "@/components/ops/OperationsShell";
 import { loadTrainerQueue } from "@/lib/academy/queries";
 import { requireRole } from "@/lib/auth/guards";
-import { signOut } from "@/lib/actions/auth";
 
 export default async function TrainerPage() {
-  await requireRole("trainer");
-  const rows = await loadTrainerQueue();
+  const { roles } = await requireRole("trainer");
+  const queue = await loadTrainerQueue();
   return (
-    <main className="ops-shell">
-      <p className="eyebrow-dark">Trainer</p>
-      <h1 className="sec">Demonstration verifications</h1>
-      <p className="helper">Confirm or reject assigned demonstrations. Members cannot sign themselves off.</p>
-      <TrainerQueue rows={rows} />
-      <p style={{ marginTop: 24 }}>
-        <a href="/academy">Back to academy</a>
-      </p>
-      <form action={signOut}>
-        <button className="gg-button gg-button--secondary" type="submit">
-          Sign out
-        </button>
-      </form>
-    </main>
+    <OperationsShell
+      active="trainer"
+      eyebrow="Trainer"
+      title="Demonstration verifications"
+      description="Confirm or reject demonstrations only for members currently assigned to you."
+      roles={roles}
+    >
+      <div className="ops-panel-head">
+        <div>
+          <p className="eyebrow-dark">Queue</p>
+          <h2>Assigned demonstrations</h2>
+        </div>
+      </div>
+      {queue.ok ? (
+        <TrainerQueue rows={queue.data} />
+      ) : (
+        <div className="gg-alert gg-alert--error" role="alert">
+          {queue.error}
+        </div>
+      )}
+    </OperationsShell>
   );
 }

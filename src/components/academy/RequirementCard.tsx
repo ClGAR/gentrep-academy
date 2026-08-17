@@ -86,7 +86,7 @@ export function RequirementCard({
         {req.type === "document" && req.status !== "done" ? (
           <div className="req-act">
             <button className="tap btn primary wide flat" onClick={onOpenDoc}>
-              Watch the video
+              Review the item
             </button>
           </div>
         ) : null}
@@ -99,7 +99,7 @@ export function RequirementCard({
               onClick={onToggle}
               style={
                 req.status === "booked" || req.status === "waitlisted"
-                  ? { background: "#fff", border: `1.5px solid ${GA.line}`, color: GA.navy }
+                  ? { background: GA.card, border: `1.5px solid ${GA.line}`, color: GA.ink }
                   : undefined
               }
             >
@@ -177,8 +177,8 @@ export function RequirementCard({
                         onClick={() => (full ? onWaitlist(event) : onBook(event))}
                         style={
                           full
-                            ? { background: "#fff", border: `1.5px solid ${GA.line}`, color: GA.navy }
-                            : { background: GA.blue, color: "#fff" }
+                            ? { background: GA.card, border: `1.5px solid ${GA.line}`, color: GA.ink }
+                            : { background: GA.blue, color: GA.paper }
                         }
                       >
                         {mustReleaseCurrent

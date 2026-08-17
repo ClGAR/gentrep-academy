@@ -89,8 +89,8 @@ export function RequirementTimeline({
         </p>
       </div>
       {complete ? (
-        <button className="tap btn navy wide" onClick={onSeeCertificate}>
-          See my certificate
+        <button className="tap btn navy wide" disabled={pending} onClick={onSeeCertificate}>
+          {pending ? "Opening certificate…" : "See my certificate"}
         </button>
       ) : null}
     </>

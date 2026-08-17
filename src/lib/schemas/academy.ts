@@ -18,7 +18,7 @@ export const acceptDocumentSchema = z.object({
   documentId: z.string().uuid(),
   requirementId: z.string().uuid(),
   language: z.enum(["en", "tl"]),
-  watched: z.boolean().refine((value) => value === true, "Watch the video before agreeing."),
+  watched: z.boolean().refine((value) => value === true, "Review the item before agreeing."),
 });
 
 export const attendanceSchema = z.object({

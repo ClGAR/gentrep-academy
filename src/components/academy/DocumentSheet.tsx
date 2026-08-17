@@ -1,7 +1,11 @@
 "use client";
 
+import { BookOpen, Check } from "lucide-react";
 import type { DocumentRecord, RequirementView } from "@/lib/academy/types";
-import { AcademyDialog } from "@/components/academy/AcademyDialog";
+import {
+  AcademyDialog,
+  AcademyDialogCloseButton,
+} from "@/components/academy/AcademyDialog";
 import { GA, GA_GRADIENT } from "@/components/academy/tokens";
 
 export function DocumentSheet({
@@ -39,9 +43,7 @@ export function DocumentSheet({
           <h2 className="h2">{title}</h2>
           <p className="fine">{blurb}</p>
         </div>
-        <button className="tap pill" onClick={onClose} aria-label="Close">
-          Close
-        </button>
+        <AcademyDialogCloseButton onClose={onClose} />
       </div>
       <div className="langs" role="group" aria-label="Language">
         {(
@@ -60,33 +62,26 @@ export function DocumentSheet({
           </button>
         ))}
       </div>
-      <div
+      <button
         className="video tap"
-        role="button"
-        tabIndex={0}
+        type="button"
         aria-pressed={watched}
         onClick={onWatch}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onWatch();
-          }
-        }}
         style={{ background: watched ? GA.goodBg : GA_GRADIENT }}
       >
         <div>
-          <span className="play" style={{ background: watched ? GA.good : "rgba(255,255,255,.25)" }}>
-            {watched ? "✓" : "▶"}
+          <span className="play" style={{ background: watched ? GA.good : "rgba(244,241,234,.24)" }}>
+            {watched ? <Check aria-hidden="true" /> : <BookOpen aria-hidden="true" />}
           </span>
-          <em style={{ color: watched ? GA.good : "#fff" }}>
+          <em style={{ color: watched ? GA.good : GA.paper }}>
             {watched
               ? lang === "tl"
-                ? "Napanood na"
-                : "Watched"
-              : `${lang === "tl" ? "I-play · " : "Play · "}${minutes}`}
+                ? "Nasuri na"
+                : "Reviewed"
+              : `${lang === "tl" ? "Suriin · " : "Review · "}${minutes}`}
           </em>
         </div>
-      </div>
+      </button>
       {hasDoc ? (
         <>
           {versionLabel ? <div className="eyebrow-dark mt">{versionLabel}</div> : null}
@@ -94,11 +89,11 @@ export function DocumentSheet({
             {body}
           </div>
           {!watched ? (
-            <p className="fine">{lang === "tl" ? "Panoorin muna ang video." : "Watch the video first."}</p>
+            <p className="fine">{lang === "tl" ? "Suriin muna ang item na ito." : "Review this item first."}</p>
           ) : null}
         </>
       ) : (
-        <p className="fine">This item is a video orientation. Play it, then continue.</p>
+        <p className="fine">This orientation has no written agreement. Review it, then continue.</p>
       )}
       <button className="tap btn primary wide" disabled={!watched || pending} onClick={onAgree}>
         {hasDoc
@@ -106,8 +101,8 @@ export function DocumentSheet({
             ? "Nabasa ko ito at sumasang-ayon ako"
             : "I have read this and I agree"
           : lang === "tl"
-            ? "Tapos — napanood ko na"
-            : "Done — I've watched it"}
+            ? "Tapos — nasuri ko na"
+            : "Done — I've reviewed it"}
       </button>
       {hasDoc ? (
         <p className="fine center">

@@ -29,7 +29,7 @@ export const BOOKING_STATUSES = [
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
 export const TYPE_LABELS: Record<RequirementType, string> = {
-  document: "Watch and agree",
+  document: "Review and agree",
   attendance: "Attend",
   demonstration: "Show it",
   derived: "Earned by your trainee",
