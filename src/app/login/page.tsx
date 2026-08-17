@@ -1,12 +1,13 @@
 import { LoginForm } from "@/components/auth/LoginForm";
+import { isSupabaseConfigured, missingSupabaseConfigMessage } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ reason?: string }>;
-}) {
-  const params = await searchParams;
-  return <LoginForm unconfigured={params.reason === "unconfigured"} />;
+export default async function LoginPage() {
+  return (
+    <LoginForm
+      unconfigured={!isSupabaseConfigured()}
+      unconfiguredMessage={missingSupabaseConfigMessage()}
+    />
+  );
 }

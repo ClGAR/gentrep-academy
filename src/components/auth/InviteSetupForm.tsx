@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { toPublicErrorMessage } from "@/lib/supabase/jwt";
 
 const setupSchema = z
   .object({
@@ -50,7 +51,7 @@ export function InviteSetupForm() {
           const attributes = { [credentialField]: values.newCredential };
           const { error: updateError } = await supabase.auth.updateUser(attributes);
           if (updateError) {
-            setError(updateError.message);
+            setError(toPublicErrorMessage(updateError.message));
             return;
           }
           router.replace("/admin");

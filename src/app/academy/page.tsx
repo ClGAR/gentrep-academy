@@ -1,4 +1,5 @@
 import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
+import { AcademyLoadError } from "@/components/academy/AcademyLoadState";
 import { loadDashboard } from "@/lib/academy/queries";
 import { chairmanVisualFixture } from "@/lib/academy/visual-fixture";
 import { requireUser } from "@/lib/auth/guards";
@@ -20,11 +21,7 @@ export default async function AcademyPage({
   await requireUser();
   const result = await loadDashboard();
   if (!result.ok) {
-    return (
-      <main className="auth-shell">
-        <div className="gg-alert gg-alert--error">{result.error}</div>
-      </main>
-    );
+    return <AcademyLoadError error={result.error} futureJwt={result.futureJwt} />;
   }
   return <AcademyDashboard data={result.data} />;
 }

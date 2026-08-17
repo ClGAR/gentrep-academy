@@ -3,6 +3,13 @@ import "server-only";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import {
+  isFutureJwtMessage,
+  toPublicErrorMessage,
+  wait,
+  FUTURE_JWT_RETRY_DELAYS_MS,
+  withFutureJwtRetry,
+} from "@/lib/supabase/jwt";
+import {
   formatAcademyEvent,
   requirementHelper,
 } from "@/lib/academy/dashboard-mapper";
@@ -52,14 +59,45 @@ type ServerSupabaseClient = Awaited<
 export async function getAuthUserId(client?: ServerSupabaseClient) {
   if (!isSupabaseConfigured()) return null;
   const supabase = client ?? (await createServerSupabaseClient());
-  const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims?.sub) return null;
-  return String(data.claims.sub);
+  for (let attempt = 0; ; attempt += 1) {
+    const { data, error } = await supabase.auth.getClaims();
+    if (data?.claims?.sub) return String(data.claims.sub);
+    const retryDelay = FUTURE_JWT_RETRY_DELAYS_MS[attempt];
+    if (!retryDelay || !isFutureJwtMessage(error?.message ?? error)) {
+      return null;
+    }
+    await wait(retryDelay);
+  }
 }
+
+type DashboardFailure = {
+  ok: false;
+  error: string;
+  unconfigured?: boolean;
+  futureJwt?: boolean;
+};
 
 export async function loadDashboard(rankCode?: string): Promise<
   | { ok: true; data: DashboardData }
-  | { ok: false; error: string; unconfigured?: boolean }
+  | DashboardFailure
+> {
+  const result = await withFutureJwtRetry(
+    () => loadDashboardOnce(rankCode),
+    (row) => !row.ok && Boolean(row.futureJwt || isFutureJwtMessage(row.error)),
+  );
+  if (!result.ok && (result.futureJwt || isFutureJwtMessage(result.error))) {
+    return {
+      ...result,
+      futureJwt: true,
+      error: toPublicErrorMessage(result.error),
+    };
+  }
+  return result;
+}
+
+async function loadDashboardOnce(rankCode?: string): Promise<
+  | { ok: true; data: DashboardData }
+  | DashboardFailure
 > {
   if (!isSupabaseConfigured()) {
     return { ok: false, error: "Supabase is not configured.", unconfigured: true };
@@ -138,7 +176,12 @@ export async function loadDashboard(rankCode?: string): Promise<
   ]);
 
   if (profileRes.error || !profileRes.data) {
-    return { ok: false, error: profileRes.error?.message ?? "Profile not found." };
+    const message = profileRes.error?.message ?? "Profile not found.";
+    return {
+      ok: false,
+      error: message,
+      futureJwt: isFutureJwtMessage(message),
+    };
   }
   const profileRow = profileRes.data;
 
@@ -153,7 +196,11 @@ export async function loadDashboard(rankCode?: string): Promise<
     certsRes.error ??
     progressRes.error;
   if (loadError) {
-    return { ok: false, error: loadError.message };
+    return {
+      ok: false,
+      error: loadError.message,
+      futureJwt: isFutureJwtMessage(loadError.message),
+    };
   }
 
   const ranks = (ranksRes.data ?? []).map((row) => mapRank(row as Record<string, unknown>));
@@ -186,12 +233,14 @@ export async function loadDashboard(rankCode?: string): Promise<
         .eq("team_id", profileRow.team_id),
     ]);
     if (teamRes.error || teamCountRes.error) {
+      const message =
+        teamRes.error?.message ??
+        teamCountRes.error?.message ??
+        "Team data could not be loaded.";
       return {
         ok: false,
-        error:
-          teamRes.error?.message ??
-          teamCountRes.error?.message ??
-          "Team data could not be loaded.",
+        error: message,
+        futureJwt: isFutureJwtMessage(message),
       };
     }
     team = teamRes.data;

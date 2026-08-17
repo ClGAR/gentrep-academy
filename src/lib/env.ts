@@ -1,6 +1,15 @@
+function readPublicEnv(name: string) {
+  const value = process.env[name];
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function getPublicSupabaseEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = readPublicEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const anonKey =
+    readPublicEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ??
+    readPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   if (!url || !anonKey) return null;
   return { url, anonKey };
 }
@@ -10,12 +19,19 @@ export function isSupabaseConfigured() {
 }
 
 export function getSiteUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const configured = readPublicEnv("NEXT_PUBLIC_SITE_URL");
   const inferred = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
   const url = new URL(configured || inferred);
   return url.toString().replace(/\/$/, "");
 }
 
 export function getServiceRoleKey() {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY ?? null;
+  return readPublicEnv("SUPABASE_SERVICE_ROLE_KEY");
+}
+
+export function missingSupabaseConfigMessage() {
+  if (process.env.VERCEL) {
+    return "This Academy link is not ready to sign in yet. Ask the person who sent it to reconnect Supabase on the hosted project, then open this same link again.";
+  }
+  return "Supabase credentials are not configured. Copy `.env.example` to `.env.local` and add project keys.";
 }

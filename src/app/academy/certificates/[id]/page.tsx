@@ -1,3 +1,4 @@
+import { AcademyLoadError } from "@/components/academy/AcademyLoadState";
 import { CertificateActions } from "@/components/academy/CertificateActions";
 import { CertificateCard } from "@/components/academy/CertificateCard";
 import { certificateQrDataUrl, certificateVerifyUrl } from "@/lib/academy/qr";
@@ -14,9 +15,7 @@ export default async function CertificatePage({
   const dashboard = await loadDashboard();
   if (!dashboard.ok) {
     return (
-      <main className="auth-shell">
-        <div className="gg-alert gg-alert--error">{dashboard.error}</div>
-      </main>
+      <AcademyLoadError error={dashboard.error} futureJwt={dashboard.futureJwt} />
     );
   }
   const cert = dashboard.data.certificates.find((item) => item.id === id);

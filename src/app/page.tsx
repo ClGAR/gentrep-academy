@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   if (!isSupabaseConfigured()) {
-    redirect("/login?reason=unconfigured");
+    redirect("/login");
   }
   const userId = await getAuthUserId();
   redirect(userId ? "/academy" : "/login");
