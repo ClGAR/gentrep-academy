@@ -1,15 +1,13 @@
-function readPublicEnv(name: string) {
-  const value = process.env[name];
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+function readPublicEnv(value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }
 
 export function getPublicSupabaseEnv() {
-  const url = readPublicEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const url = readPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
   const anonKey =
-    readPublicEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ??
-    readPublicEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+    readPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ??
+    readPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
   if (!url || !anonKey) return null;
   return { url, anonKey };
 }
@@ -19,14 +17,14 @@ export function isSupabaseConfigured() {
 }
 
 export function getSiteUrl() {
-  const configured = readPublicEnv("NEXT_PUBLIC_SITE_URL");
+  const configured = readPublicEnv(process.env.NEXT_PUBLIC_SITE_URL);
   const inferred = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
   const url = new URL(configured || inferred);
   return url.toString().replace(/\/$/, "");
 }
 
 export function getServiceRoleKey() {
-  return readPublicEnv("SUPABASE_SERVICE_ROLE_KEY");
+  return readPublicEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export function missingSupabaseConfigMessage() {
