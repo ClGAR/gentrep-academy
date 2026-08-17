@@ -1,6 +1,7 @@
 import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
 import { loadDashboard } from "@/lib/academy/queries";
 import { requireUser } from "@/lib/auth/guards";
+import { redirect } from "next/navigation";
 
 export default async function RankPage({
   params,
@@ -16,6 +17,9 @@ export default async function RankPage({
         <div className="gg-alert gg-alert--error">{result.error}</div>
       </main>
     );
+  }
+  if (result.data.lockedReason) {
+    redirect("/academy");
   }
   return <AcademyDashboard data={result.data} />;
 }

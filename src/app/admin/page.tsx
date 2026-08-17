@@ -27,7 +27,7 @@ export default async function AdminPage() {
         </div>
       </div>
       <p className="helper">
-        Use SQL / Table Editor for catalog corrections. Privileged writes go through `academy.*` functions and `audit_log`.
+        Routine privileged changes must use audited database functions. Table Editor is reserved for controlled setup or emergency technical correction.
       </p>
       <p>
         <a href="/academy">Member dashboard</a> · <a href="/staff/events">Staff</a> ·{" "}

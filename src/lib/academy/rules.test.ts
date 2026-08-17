@@ -10,6 +10,11 @@ import {
   publicCertificatePayload,
   rankLockReason,
 } from "./rules";
+import { certificateVerifyUrl } from "./qr";
+import {
+  completedRequirementHelper,
+  requirementHelper,
+} from "./dashboard-mapper";
 
 test("rank ladder locks later ranks until the previous rank is complete", () => {
   const names = {
@@ -23,6 +28,67 @@ test("rank ladder locks later ranks until the previous rank is complete", () => 
   assert.equal(rankLockReason("BASE", [], names), null);
   assert.equal(rankLockReason("TL", [], names), "Finish Base Activation first");
   assert.equal(rankLockReason("TL", ["BASE"], names), null);
+  assert.equal(
+    rankLockReason("SL", ["TL"], names),
+    "Finish Base Activation first",
+  );
+});
+
+test("dashboard helper maps real completion metadata into chairman copy", () => {
+  assert.equal(
+    completedRequirementHelper({
+      type: "document",
+      completedAt: "2026-07-28T14:00:00+08:00",
+      language: "tl",
+    }),
+    "Agreed sa Tagalog · 28 Jul",
+  );
+  assert.equal(
+    completedRequirementHelper({
+      type: "demonstration",
+      completedAt: "2026-08-23T14:00:00+08:00",
+      language: null,
+    }),
+    "Signed off · 23 Aug",
+  );
+});
+
+test("dashboard helper maps missed attendance to its real event date", () => {
+  const event = {
+    id: "event-1",
+    title: "Product Presentation",
+    eventType: "Product Presentation",
+    startsAt: "2026-08-16T09:00:00+08:00",
+    venue: "Lagao Hall",
+    hostName: "Trainer",
+    hostRankCode: "PL" as const,
+    capacity: 20,
+    bookedCount: 1,
+    status: "completed" as const,
+  };
+  assert.equal(
+    requirementHelper({
+      requirement: {
+        id: "req-1",
+        rankId: "rank-1",
+        code: "b-2",
+        type: "attendance",
+        title: "Product Presentation",
+        note: "What it is",
+        minutes: null,
+        sortOrder: 1,
+        documentId: null,
+      },
+      status: "missed",
+      completedAt: null,
+      language: null,
+      bookedEvent: null,
+      historicalEvent: event,
+      matchingEventCount: 2,
+      waitlistPosition: null,
+    }),
+    "Missed · 16 Aug — pick another date",
+  );
 });
 
 test("duplicate active booking is rejected", () => {
@@ -126,6 +192,17 @@ test("public verification payload omits team, booking, and audit fields", () => 
     "referenceCode",
     "status",
   ]);
+});
+
+test("certificate verification uses the canonical opaque-code route", () => {
+  const previous = process.env.NEXT_PUBLIC_SITE_URL;
+  process.env.NEXT_PUBLIC_SITE_URL = "https://preview.example.com/";
+  assert.equal(
+    certificateVerifyUrl("opaque-code"),
+    "https://preview.example.com/certificates/verify/opaque-code",
+  );
+  if (previous === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+  else process.env.NEXT_PUBLIC_SITE_URL = previous;
 });
 
 test("cross-user access is denied by identity checks in privileged operations", () => {

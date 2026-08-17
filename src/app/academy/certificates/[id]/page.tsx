@@ -1,4 +1,5 @@
 import { CertificateActions } from "@/components/academy/CertificateActions";
+import { CertificateCard } from "@/components/academy/CertificateCard";
 import { certificateQrDataUrl, certificateVerifyUrl } from "@/lib/academy/qr";
 import { loadDashboard } from "@/lib/academy/queries";
 import { requireUser } from "@/lib/auth/guards";
@@ -27,43 +28,42 @@ export default async function CertificatePage({
     );
   }
   const rank = dashboard.data.ranks.find((item) => item.id === cert.rankId);
-  const qr = await certificateQrDataUrl(cert.id);
-  const verifyUrl = certificateVerifyUrl(cert.id);
+  const qr = await certificateQrDataUrl(cert.verificationCode);
+  const verifyUrl = certificateVerifyUrl(cert.verificationCode);
+  const rankDashboard =
+    rank && rank.code !== dashboard.data.selectedRank.code
+      ? await loadDashboard(rank.code)
+      : dashboard;
+  const requirements =
+    rankDashboard.ok && rankDashboard.data.selectedRank.id === cert.rankId
+      ? rankDashboard.data.requirements
+      : undefined;
 
   return (
-    <main className="col">
-      <div className="cert printroot">
-        <div className="eyebrow-dark">Gentrep Academy</div>
-        <p>hereby certifies</p>
-        <div className="cert-name">{dashboard.data.profile.fullName}</div>
-        <div>{rank?.officerTitle ?? rank?.fullName}</div>
-        <p>{rank?.citation}</p>
-        <div className="cert-qr">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qr} alt="Certificate verification QR code" width={160} height={160} />
-          <em>Scan to verify</em>
-        </div>
-        <div className="cert-record">
-          <div>
-            <em>Dated</em>
-            <b>{new Date(cert.issuedAt).toLocaleDateString("en-PH")}</b>
-          </div>
-          <div>
-            <em>Card</em>
-            <b>{dashboard.data.profile.memberCard?.slice(-9) ?? "—"}</b>
-          </div>
-          <div>
-            <em>Reference</em>
-            <b>{cert.referenceCode}</b>
-          </div>
-        </div>
-        <p className="cert-fine">An internal distinction of the Gentrep Academy.</p>
+    <main className="ga">
+      <div className="col">
+        {rank ? (
+          <CertificateCard
+            name={dashboard.data.profile.fullName}
+            rank={rank}
+            citation={rank.citation}
+            issuedAt={new Date(cert.issuedAt).toLocaleDateString("en-PH", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+            cardTail={dashboard.data.profile.memberCard?.slice(-9) ?? "—"}
+            reference={cert.referenceCode}
+            qrSrc={qr}
+            requirements={requirements}
+          />
+        ) : null}
+        <CertificateActions
+          verifyUrl={verifyUrl}
+          name={dashboard.data.profile.fullName}
+          rank={rank?.officerTitle ?? rank?.fullName ?? ""}
+        />
       </div>
-      <CertificateActions
-        verifyUrl={verifyUrl}
-        name={dashboard.data.profile.fullName}
-        rank={rank?.fullName ?? ""}
-      />
     </main>
   );
 }

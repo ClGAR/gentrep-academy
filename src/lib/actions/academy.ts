@@ -22,7 +22,7 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<Acti
   }
   const supabase = await createServerSupabaseClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
-  if (authError || !claims) {
+  if (authError || !claims?.claims?.sub) {
     return { ok: false, error: "Sign in to continue." };
   }
   const { data, error } = await supabase.rpc(name, args);
@@ -93,7 +93,7 @@ export async function issueCertificateAction(input: unknown): Promise<ActionResu
   });
   if (result.ok) {
     revalidatePath("/academy/certificates");
-    revalidatePath("/verify");
+    revalidatePath("/certificates/verify");
   }
   return result;
 }
