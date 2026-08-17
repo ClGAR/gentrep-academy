@@ -53,7 +53,6 @@ export function InviteSetupForm() {
             setError(updateError.message);
             return;
           }
-          await supabase.auth.refreshSession();
           router.replace("/admin");
           router.refresh();
         });
