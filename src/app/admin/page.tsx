@@ -1,43 +1,41 @@
 import { loadAdminSummary } from "@/lib/academy/queries";
 import { requireRole } from "@/lib/auth/guards";
-import { signOut } from "@/lib/actions/auth";
+import { OperationsShell } from "@/components/ops/OperationsShell";
 
 export default async function AdminPage() {
-  await requireRole("admin");
+  const { roles } = await requireRole("admin");
   const summary = await loadAdminSummary();
   return (
-    <main className="ops-shell">
-      <p className="eyebrow-dark">Admin</p>
-      <h1 className="sec">Academy operations</h1>
-      <p className="helper">
-        Members, ranks, events, and certificates are managed in Supabase with audited server actions. This screen is the working MVP desk.
-      </p>
-      <div className="about-table">
-        <div>
-          <b>{summary.members}</b>
-          <span>Profiles</span>
+    <OperationsShell
+      active="admin"
+      eyebrow="Admin"
+      title="Academy operations"
+      description="A read-only overview of the live Academy. Privileged changes remain protected by audited database functions."
+      roles={roles}
+      metrics={
+        summary.ok
+          ? [
+              { value: summary.data.members, label: "Profiles" },
+              { value: summary.data.events, label: "Training events" },
+              { value: summary.data.certificates, label: "Certificates issued" },
+            ]
+          : undefined
+      }
+    >
+      {!summary.ok ? (
+        <div className="gg-alert gg-alert--error" role="alert">
+          {summary.error}
         </div>
+      ) : null}
+      <div className="ops-panel-head">
         <div>
-          <b>{summary.events}</b>
-          <span>Training events</span>
-        </div>
-        <div>
-          <b>{summary.certificates}</b>
-          <span>Certificates issued</span>
+          <p className="eyebrow-dark">Control boundary</p>
+          <h2>Audited operations only</h2>
         </div>
       </div>
       <p className="helper">
         Routine privileged changes must use audited database functions. Table Editor is reserved for controlled setup or emergency technical correction.
       </p>
-      <p>
-        <a href="/academy">Member dashboard</a> · <a href="/staff/events">Staff</a> ·{" "}
-        <a href="/trainer/verifications">Trainer</a>
-      </p>
-      <form action={signOut}>
-        <button className="gg-button gg-button--secondary" type="submit">
-          Sign out
-        </button>
-      </form>
-    </main>
+    </OperationsShell>
   );
 }

@@ -1,6 +1,24 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { X } from "lucide-react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+
+export function AcademyDialogCloseButton({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  return (
+    <button
+      className="tap dialog-close"
+      type="button"
+      onClick={onClose}
+      aria-label="Close"
+    >
+      <X aria-hidden="true" />
+    </button>
+  );
+}
 
 export function AcademyDialog({
   label,
@@ -14,6 +32,7 @@ export function AcademyDialog({
   const sheetRef = useRef<HTMLDivElement>(null);
   const previousRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const titleId = useId();
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -22,6 +41,19 @@ export function AcademyDialog({
   useEffect(() => {
     previousRef.current = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
+    const background = [
+      document.querySelector<HTMLElement>(".ga .shell"),
+      document.querySelector<HTMLElement>(".ga .foot"),
+    ].filter((element): element is HTMLElement => Boolean(element));
+    const backgroundState = background.map((element) => ({
+      element,
+      inert: element.inert,
+      ariaHidden: element.getAttribute("aria-hidden"),
+    }));
+    background.forEach((element) => {
+      element.inert = true;
+      element.setAttribute("aria-hidden", "true");
+    });
     document.body.style.overflow = "hidden";
     const focusTimer = window.setTimeout(() => {
       sheetRef.current?.focus({ preventScroll: true });
@@ -54,12 +86,17 @@ export function AcademyDialog({
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = overflow;
+      backgroundState.forEach(({ element, inert, ariaHidden }) => {
+        element.inert = inert;
+        if (ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", ariaHidden);
+      });
       previousRef.current?.focus?.({ preventScroll: true });
     };
   }, []);
 
   return (
-    <div className="modal" role="dialog" aria-modal="true" aria-label={label} onClick={onClose}>
+    <div className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={onClose}>
       <div
         className="sheet up"
         ref={sheetRef}
@@ -67,6 +104,9 @@ export function AcademyDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="grab only-mobile" />
+        <span className="sr-only" id={titleId}>
+          {label}
+        </span>
         {children}
       </div>
     </div>

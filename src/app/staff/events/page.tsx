@@ -1,25 +1,32 @@
 import { StaffRoster } from "@/components/ops/StaffRoster";
+import { OperationsShell } from "@/components/ops/OperationsShell";
 import { loadStaffRoster } from "@/lib/academy/queries";
 import { requireRole } from "@/lib/auth/guards";
-import { signOut } from "@/lib/actions/auth";
 
 export default async function StaffEventsPage() {
-  await requireRole("staff");
-  const rows = await loadStaffRoster();
+  const { roles } = await requireRole("staff");
+  const roster = await loadStaffRoster();
   return (
-    <main className="ops-shell">
-      <p className="eyebrow-dark">Staff</p>
-      <h1 className="sec">Assigned events</h1>
-      <p className="helper">Check members in only after they are present. Members cannot mark themselves.</p>
-      <StaffRoster rows={rows} />
-      <p style={{ marginTop: 24 }}>
-        <a href="/academy">Back to academy</a>
-      </p>
-      <form action={signOut}>
-        <button className="gg-button gg-button--secondary" type="submit">
-          Sign out
-        </button>
-      </form>
-    </main>
+    <OperationsShell
+      active="staff"
+      eyebrow="Staff"
+      title="Assigned events"
+      description="Record attendance only for members who are present at events assigned to you."
+      roles={roles}
+    >
+      <div className="ops-panel-head">
+        <div>
+          <p className="eyebrow-dark">Roster</p>
+          <h2>Member check-in</h2>
+        </div>
+      </div>
+      {roster.ok ? (
+        <StaffRoster rows={roster.data} />
+      ) : (
+        <div className="gg-alert gg-alert--error" role="alert">
+          {roster.error}
+        </div>
+      )}
+    </OperationsShell>
   );
 }

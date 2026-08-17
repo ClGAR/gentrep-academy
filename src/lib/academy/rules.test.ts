@@ -11,6 +11,7 @@ import {
   rankLockReason,
 } from "./rules";
 import { certificateVerifyUrl } from "./qr";
+import { TYPE_LABELS } from "./types";
 import {
   completedRequirementHelper,
   requirementHelper,
@@ -88,6 +89,65 @@ test("dashboard helper maps missed attendance to its real event date", () => {
       waitlistPosition: null,
     }),
     "Missed · 16 Aug — pick another date",
+  );
+});
+
+test("requirement type labels describe review rather than verified playback", () => {
+  assert.equal(TYPE_LABELS.document, "Review and agree");
+  assert.equal(TYPE_LABELS.attendance, "Attend");
+  assert.equal(TYPE_LABELS.demonstration, "Show it");
+  assert.equal(TYPE_LABELS.derived, "Earned by your trainee");
+});
+
+test("dashboard helper maps trainer rejection without implying member self-sign-off", () => {
+  assert.equal(
+    requirementHelper({
+      requirement: {
+        id: "req-demo",
+        rankId: "rank-1",
+        code: "b-demo",
+        type: "demonstration",
+        title: "Product walkthrough",
+        note: "Show it to your trainer",
+        minutes: null,
+        sortOrder: 3,
+        documentId: null,
+      },
+      status: "rejected",
+      completedAt: null,
+      language: null,
+      bookedEvent: null,
+      historicalEvent: null,
+      matchingEventCount: 0,
+      waitlistPosition: null,
+    }),
+    "Not signed off — review with your trainer",
+  );
+});
+
+test("dashboard helper describes document work as review rather than verified playback", () => {
+  assert.equal(
+    requirementHelper({
+      requirement: {
+        id: "req-doc",
+        rankId: "rank-1",
+        code: "b-creed",
+        type: "document",
+        title: "Gentrep Creed",
+        note: "What we hold ourselves to",
+        minutes: "2 min",
+        sortOrder: 1,
+        documentId: "doc-1",
+      },
+      status: "open",
+      completedAt: null,
+      language: null,
+      bookedEvent: null,
+      historicalEvent: null,
+      matchingEventCount: 0,
+      waitlistPosition: null,
+    }),
+    "Review 2 min · then read and agree",
   );
 });
 

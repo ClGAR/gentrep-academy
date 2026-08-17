@@ -1,7 +1,6 @@
 "use client";
 
 import type { RequirementView } from "@/lib/academy/types";
-import { GA } from "@/components/academy/tokens";
 import { requirementActionLabel } from "@/components/academy/helpers";
 
 export function NextActionBar({
@@ -18,7 +17,7 @@ export function NextActionBar({
           <div className="eyebrow-dark">Next</div>
           <b className="foot-title">{next.title}</b>
         </div>
-        <button className="tap btn primary" onClick={onNext} style={{ background: GA.blue, color: "#fff" }}>
+        <button className="tap btn primary" onClick={onNext}>
           {requirementActionLabel(next, true)}
         </button>
       </div>

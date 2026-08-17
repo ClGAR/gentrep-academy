@@ -123,7 +123,7 @@ const baseRequirements: RequirementView[] = [
   req("base", "b-orient", "document", "Gutguard Dashboard Orientation", "done", "Agreed · 28 Jul", { minutes: "4 min" }),
   req("base", "b-da", "document", "Distributor's Agreement", "done", "Agreed · 28 Jul", { minutes: "6 min" }),
   req("base", "b-eth", "document", "Code of Ethics", "done", "Agreed sa Tagalog · 28 Jul", { minutes: "5 min" }),
-  req("base", "b-creed", "document", "Gentrep Creed", "open", "Video 2 min · then read and agree", { minutes: "2 min" }),
+  req("base", "b-creed", "document", "Gentrep Creed", "open", "Review 2 min · then read and agree", { minutes: "2 min" }),
   req("base", "b-1", "attendance", "Ginhawa Talk", "done", "Attended · 19 Jul", { note: "Where it starts" }),
   req("base", "b-2", "attendance", "Product Presentation", "missed", "Missed · 26 Jul — pick another date", {
     note: "What it is, how to use it",

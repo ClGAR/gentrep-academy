@@ -54,7 +54,7 @@ export async function cancelBookingAction(input: unknown): Promise<ActionResult>
 export async function acceptDocumentAction(input: unknown): Promise<ActionResult> {
   const parsed = acceptDocumentSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Watch the video, then agree." };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Review the item, then agree." };
   }
   return rpc("accept_document", {
     p_document_id: parsed.data.documentId,

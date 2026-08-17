@@ -384,14 +384,19 @@ export type StaffRosterRow = {
   status: string;
 };
 
-export async function loadStaffRoster(): Promise<StaffRosterRow[]> {
+export type AcademyQueryResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+export async function loadStaffRoster(): Promise<AcademyQueryResult<StaffRosterRow[]>> {
   const supabase = await createServerSupabaseClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("event_bookings")
     .select("id, event_id, user_id, status, training_events(title, starts_at, venue), profiles(full_name)")
     .in("status", ["booked", "waitlisted", "attended", "absent"])
     .order("created_at", { ascending: false });
-  return ((data ?? []) as Array<Record<string, unknown>>).map((row) => {
+  if (error) return { ok: false, error: "The assigned roster could not be loaded." };
+  const rows = ((data ?? []) as Array<Record<string, unknown>>).map((row) => {
     const event = row.training_events as Record<string, unknown> | null;
     const profile = row.profiles as Record<string, unknown> | null;
     return {
@@ -405,6 +410,7 @@ export async function loadStaffRoster(): Promise<StaffRosterRow[]> {
       status: String(row.status),
     };
   });
+  return { ok: true, data: rows };
 }
 
 export type TrainerQueueRow = {
@@ -415,27 +421,48 @@ export type TrainerQueueRow = {
   status: string;
 };
 
-export async function loadTrainerQueue(): Promise<TrainerQueueRow[]> {
+export async function loadTrainerQueue(): Promise<AcademyQueryResult<TrainerQueueRow[]>> {
   const supabase = await createServerSupabaseClient();
-  const userId = await getAuthUserId();
-  if (!userId) return [];
-  const { data: assigned } = await supabase
+  const userId = await getAuthUserId(supabase);
+  if (!userId) return { ok: false, error: "Sign in to open the trainer queue." };
+  const { data: assigned, error: assignedError } = await supabase
     .from("trainer_assignments")
     .select("member_id, profiles:member_id(full_name)")
     .eq("trainer_id", userId)
     .is("ended_at", null);
+  if (assignedError) return { ok: false, error: "The assigned members could not be loaded." };
   const members = assigned ?? [];
-  const { data: demos } = await supabase
-    .from("requirements")
-    .select("id, title")
-    .eq("type", "demonstration");
-  const { data: completions } = await supabase
-    .from("requirement_completions")
-    .select("user_id, requirement_id, status");
+  const memberIds = (members as Array<{ member_id: string }>).map((member) => member.member_id);
+  if (memberIds.length === 0) return { ok: true, data: [] };
+  const [demosResult, completionsResult, progressResult] = await Promise.all([
+    supabase
+      .from("requirements")
+      .select("id, title, rank_id")
+      .eq("type", "demonstration"),
+    supabase
+      .from("requirement_completions")
+      .select("user_id, requirement_id, status")
+      .in("user_id", memberIds),
+    supabase
+      .from("member_rank_progress")
+      .select("user_id, rank_id, status")
+      .in("user_id", memberIds)
+      .eq("status", "in_progress"),
+  ]);
+  const queueError = demosResult.error ?? completionsResult.error ?? progressResult.error;
+  if (queueError) return { ok: false, error: "The demonstration queue could not be loaded." };
+  const demos = demosResult.data ?? [];
+  const completions = completionsResult.data ?? [];
+  const progress = progressResult.data ?? [];
   const rows: TrainerQueueRow[] = [];
   for (const member of members as Array<Record<string, unknown>>) {
-    for (const demo of demos ?? []) {
-      const completion = (completions ?? []).find(
+    const accessibleRankIds = new Set(
+      progress
+        .filter((item) => item.user_id === member.member_id)
+        .map((item) => item.rank_id),
+    );
+    for (const demo of demos.filter((item) => accessibleRankIds.has(item.rank_id))) {
+      const completion = completions.find(
         (row) => row.user_id === member.member_id && row.requirement_id === demo.id,
       );
       rows.push({
@@ -447,20 +474,27 @@ export async function loadTrainerQueue(): Promise<TrainerQueueRow[]> {
       });
     }
   }
-  return rows;
+  return { ok: true, data: rows };
 }
 
-export async function loadAdminSummary() {
+export async function loadAdminSummary(): Promise<
+  AcademyQueryResult<{ members: number; events: number; certificates: number }>
+> {
   const supabase = await createServerSupabaseClient();
-  const [{ count: members }, { count: events }, { count: certificates }] = await Promise.all([
+  const [membersResult, eventsResult, certificatesResult] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("training_events").select("id", { count: "exact", head: true }),
     supabase.from("certificates").select("id", { count: "exact", head: true }),
   ]);
+  const summaryError = membersResult.error ?? eventsResult.error ?? certificatesResult.error;
+  if (summaryError) return { ok: false, error: "The operations summary could not be loaded." };
   return {
-    members: members ?? 0,
-    events: events ?? 0,
-    certificates: certificates ?? 0,
+    ok: true,
+    data: {
+      members: membersResult.count ?? 0,
+      events: eventsResult.count ?? 0,
+      certificates: certificatesResult.count ?? 0,
+    },
   };
 }
 
@@ -473,18 +507,27 @@ export type PublicCertificate = {
   status: "issued" | "revoked";
 };
 
-export async function loadPublicCertificate(code: string): Promise<PublicCertificate | null> {
-  if (!isSupabaseConfigured()) return null;
+export async function loadPublicCertificate(code: string): Promise<
+  | { ok: true; data: PublicCertificate }
+  | { ok: false; kind: "not-found" | "unavailable" }
+> {
+  if (!isSupabaseConfigured()) return { ok: false, kind: "unavailable" };
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc("verify_certificate", { p_code: code });
-  if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
+  if (error) return { ok: false, kind: "unavailable" };
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    return { ok: false, kind: "not-found" };
+  }
   const row = Array.isArray(data) ? data[0] : data;
   return {
-    id: row.id,
-    memberName: row.member_name,
-    rankName: row.rank_name,
-    referenceCode: row.reference_code,
-    issuedAt: row.issued_at,
-    status: row.status,
+    ok: true,
+    data: {
+      id: row.id,
+      memberName: row.member_name,
+      rankName: row.rank_name,
+      referenceCode: row.reference_code,
+      issuedAt: row.issued_at,
+      status: row.status,
+    },
   };
 }

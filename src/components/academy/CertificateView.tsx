@@ -6,6 +6,7 @@ import type { RankRecord, RequirementView } from "@/lib/academy/types";
 import { AcademyDialog } from "@/components/academy/AcademyDialog";
 import { CertificateCard } from "@/components/academy/CertificateCard";
 import { CertificateActions } from "@/components/academy/CertificateActions";
+import { GA } from "@/components/academy/tokens";
 
 export function CertificateView({
   name,
@@ -35,7 +36,7 @@ export function CertificateView({
     void QRCode.toDataURL(verifyUrl, {
       margin: 1,
       width: 240,
-      color: { dark: "#0e2249", light: "#ffffff" },
+      color: { dark: GA.ink, light: "#ffffff" },
     }).then((url) => {
       if (!cancelled) setQr(url);
     });

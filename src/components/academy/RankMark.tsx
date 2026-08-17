@@ -3,20 +3,34 @@
 import { useId } from "react";
 import { GA, METALS, type Metal } from "@/components/academy/tokens";
 
+function coord(value: number) {
+  return Number(value.toFixed(3));
+}
+
 function GentrepTriad({ cx, cy, s }: { cx: number; cy: number; s: number }) {
   return (
     <g
       fill={GA.mark}
       stroke={GA.mark}
-      strokeWidth={s * 0.15}
+      strokeWidth={coord(s * 0.15)}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <line x1={cx - s * 0.42} y1={cy + s * 0.3} x2={cx + s * 0.12} y2={cy - s * 0.46} />
-      <line x1={cx - s * 0.42} y1={cy + s * 0.3} x2={cx + s * 0.44} y2={cy + s * 0.28} />
-      <circle cx={cx + s * 0.12} cy={cy - s * 0.46} r={s * 0.19} />
-      <circle cx={cx - s * 0.42} cy={cy + s * 0.3} r={s * 0.25} />
-      <circle cx={cx + s * 0.44} cy={cy + s * 0.28} r={s * 0.33} />
+      <line
+        x1={coord(cx - s * 0.42)}
+        y1={coord(cy + s * 0.3)}
+        x2={coord(cx + s * 0.12)}
+        y2={coord(cy - s * 0.46)}
+      />
+      <line
+        x1={coord(cx - s * 0.42)}
+        y1={coord(cy + s * 0.3)}
+        x2={coord(cx + s * 0.44)}
+        y2={coord(cy + s * 0.28)}
+      />
+      <circle cx={coord(cx + s * 0.12)} cy={coord(cy - s * 0.46)} r={coord(s * 0.19)} />
+      <circle cx={coord(cx - s * 0.42)} cy={coord(cy + s * 0.3)} r={coord(s * 0.25)} />
+      <circle cx={coord(cx + s * 0.44)} cy={coord(cy + s * 0.28)} r={coord(s * 0.33)} />
     </g>
   );
 }
@@ -50,10 +64,10 @@ function SealMark({ size, metal }: { size: number; metal: Metal }) {
       <circle cx="50" cy="50" r="38" fill="none" stroke={swatch.ink} strokeWidth="1.5" opacity=".32" />
       {Array.from({ length: 24 }).map((_, index) => {
         const angle = (index * 15 * Math.PI) / 180;
-        const x1 = Number((50 + Math.cos(angle) * 39).toFixed(3));
-        const y1 = Number((50 + Math.sin(angle) * 39).toFixed(3));
-        const x2 = Number((50 + Math.cos(angle) * 45).toFixed(3));
-        const y2 = Number((50 + Math.sin(angle) * 45).toFixed(3));
+        const x1 = coord(50 + Math.cos(angle) * 39);
+        const y1 = coord(50 + Math.sin(angle) * 39);
+        const x2 = coord(50 + Math.cos(angle) * 45);
+        const y2 = coord(50 + Math.sin(angle) * 45);
         return (
           <line
             key={index}
@@ -101,7 +115,7 @@ function BarMark({
         <g key={index}>
           <rect
             x="1.5"
-            y={index * (bar + gap) + 1.2}
+            y={coord(index * (bar + gap) + 1.2)}
             width={width - 3}
             height={bar - 2.4}
             rx={4}
@@ -111,9 +125,9 @@ function BarMark({
           />
           <line
             x1="7"
-            y1={index * (bar + gap) + bar * 0.34}
+            y1={coord(index * (bar + gap) + bar * 0.34)}
             x2={width - 7}
-            y2={index * (bar + gap) + bar * 0.34}
+            y2={coord(index * (bar + gap) + bar * 0.34)}
             stroke={swatch.hi}
             strokeWidth="1.2"
             opacity=".55"
