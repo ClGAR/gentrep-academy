@@ -110,7 +110,14 @@ export type CompletionRecord = {
   completedAt: string | null;
   source: string | null;
   language: "en" | "tl" | null;
-  evidence: Record<string, string> | null;
+  evidence: Record<string, unknown> | null;
+};
+
+export type RankProgressRecord = {
+  rankId: string;
+  rankCode: RankCode;
+  status: "in_progress" | "complete";
+  completedAt: string | null;
 };
 
 export type CertificateRecord = {
@@ -119,6 +126,7 @@ export type CertificateRecord = {
   rankId: string;
   rankCode: RankCode;
   referenceCode: string;
+  verificationCode: string;
   issuedAt: string;
   status: "issued" | "revoked";
   memberName: string;
@@ -138,6 +146,8 @@ export type ProfileRecord = {
 export type RequirementView = RequirementRecord & {
   status: ProgressStatus;
   helper: string;
+  completedAt: string | null;
+  source: string | null;
   bookedEvent: EventRecord | null;
   bookingId: string | null;
   matchingEvents: EventRecord[];
@@ -149,6 +159,7 @@ export type DashboardData = {
   selectedRank: RankRecord;
   requirements: RequirementView[];
   documents: DocumentRecord[];
+  rankProgress: RankProgressRecord[];
   certificates: CertificateRecord[];
   lockedReason: string | null;
 };

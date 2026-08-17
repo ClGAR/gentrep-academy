@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "reference/**",
     "scaffold-tmp/**",
+    "supabase/.temp/**",
   ]),
 ]);
 

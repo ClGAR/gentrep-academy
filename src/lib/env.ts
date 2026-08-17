@@ -10,7 +10,10 @@ export function isSupabaseConfigured() {
 }
 
 export function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const inferred = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+  const url = new URL(configured || inferred);
+  return url.toString().replace(/\/$/, "");
 }
 
 export function getServiceRoleKey() {

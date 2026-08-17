@@ -11,10 +11,13 @@ export function rankLockReason(
   completedRankCodes: RankCode[],
   rankNames: Record<RankCode, string>,
 ): string | null {
-  const previous = previousRankCode(code);
-  if (!previous) return null;
-  if (completedRankCodes.includes(previous)) return null;
-  return `Finish ${rankNames[previous]} first`;
+  const order: RankCode[] = ["BASE", "TL", "SL", "PL", "CC"];
+  const targetIndex = order.indexOf(code);
+  if (targetIndex <= 0) return null;
+  const firstIncomplete = order
+    .slice(0, targetIndex)
+    .find((rankCode) => !completedRankCodes.includes(rankCode));
+  return firstIncomplete ? `Finish ${rankNames[firstIncomplete]} first` : null;
 }
 
 export function allRequirementsDone(statuses: ProgressStatus[]) {
@@ -24,7 +27,12 @@ export function allRequirementsDone(statuses: ProgressStatus[]) {
 export function nextOpenRequirement<T extends { status: ProgressStatus }>(
   items: T[],
 ) {
-  return items.find((item) => item.status === "open" || item.status === "missed") ?? null;
+  return items.find(
+    (item) =>
+      item.status === "open" ||
+      item.status === "missed" ||
+      item.status === "rejected",
+  ) ?? null;
 }
 
 export function canMemberBook(input: {

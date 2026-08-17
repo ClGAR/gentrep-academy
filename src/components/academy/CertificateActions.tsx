@@ -4,24 +4,28 @@ export function CertificateActions({
   verifyUrl,
   name,
   rank,
+  onClose,
 }: {
   verifyUrl: string;
   name: string;
   rank: string;
+  onClose?: () => void;
 }) {
   return (
-    <div className="no-print" style={{ display: "grid", gap: 8, marginTop: 16 }}>
+    <div className="no-print">
       <button
-        className="gg-button gg-button--primary gg-button--wide"
-        onClick={() => window.print()}
+        className="tap btn navy wide"
+        onClick={() => {
+          window.print();
+        }}
       >
         Download as PDF
       </button>
-      <p className="helper" style={{ textAlign: "center" }}>
+      <p className="fine center">
         In the print window choose <b>Save as PDF</b> as the destination.
       </p>
       <button
-        className="gg-button gg-button--secondary gg-button--wide"
+        className="tap btn tg wide"
         onClick={async () => {
           const text = `${name} — ${rank}, Gentrep Academy.`;
           try {
@@ -41,9 +45,15 @@ export function CertificateActions({
       >
         Share
       </button>
-      <a className="gg-button gg-button--secondary gg-button--wide" href="/academy">
-        Close
-      </a>
+      {onClose ? (
+        <button className="tap btn outline wide" onClick={onClose}>
+          Close
+        </button>
+      ) : (
+        <a className="tap btn outline wide" href="/academy">
+          Close
+        </a>
+      )}
     </div>
   );
 }
