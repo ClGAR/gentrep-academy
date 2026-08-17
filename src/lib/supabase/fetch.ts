@@ -12,12 +12,14 @@ async function isFutureJwtResponse(response: Response) {
 
   try {
     const body: unknown = await response.clone().json();
-    return (
-      typeof body === "object" &&
-      body !== null &&
-      "message" in body &&
-      body.message === FUTURE_JWT_MESSAGE
-    );
+    if (typeof body !== "object" || body === null) return false;
+    const message =
+      "message" in body
+        ? body.message
+        : "msg" in body
+          ? body.msg
+          : undefined;
+    return message === FUTURE_JWT_MESSAGE;
   } catch {
     return false;
   }

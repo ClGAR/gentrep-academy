@@ -47,6 +47,27 @@ test("Supabase fetch recovers from a transient future JWT response", async () =>
   assert.equal(response.status, 200);
 });
 
+test("Supabase fetch recognizes the Auth-style msg field", async () => {
+  let calls = 0;
+  const wrappedFetch = createSupabaseFetch({
+    fetchImpl: async () => {
+      calls += 1;
+      return calls === 1
+        ? Response.json(
+            { msg: "JWT issued at future" },
+            { status: 401 },
+          )
+        : Response.json({ ok: true });
+    },
+    sleep: async () => undefined,
+  });
+
+  const response = await wrappedFetch("https://example.test/auth/v1/user");
+
+  assert.equal(calls, 2);
+  assert.equal(response.status, 200);
+});
+
 test("Supabase fetch does not retry unrelated authentication errors", async () => {
   let calls = 0;
   const wrappedFetch = createSupabaseFetch({
