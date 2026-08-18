@@ -11,6 +11,7 @@ import {
   issueCertificateSchema,
 } from "@/lib/schemas/academy";
 import { isSupabaseConfigured } from "@/lib/env";
+import { toPublicErrorMessage } from "@/lib/supabase/jwt";
 
 export type ActionResult<T = Record<string, unknown>> =
   | { ok: true; data?: T }
@@ -27,7 +28,7 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<Acti
   }
   const { data, error } = await supabase.rpc(name, args);
   if (error) {
-    return { ok: false, error: error.message };
+    return { ok: false, error: toPublicErrorMessage(error.message) };
   }
   revalidatePath("/academy");
   revalidatePath("/staff/events");

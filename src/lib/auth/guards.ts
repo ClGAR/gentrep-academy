@@ -6,7 +6,7 @@ import type { AppRole } from "@/lib/academy/types";
 
 export async function requireUser() {
   if (!isSupabaseConfigured()) {
-    redirect("/login?reason=unconfigured");
+    redirect("/login");
   }
   const userId = await getAuthUserId();
   if (!userId) redirect("/login");

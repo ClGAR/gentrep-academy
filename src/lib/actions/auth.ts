@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/schemas/academy";
 import { isSupabaseConfigured } from "@/lib/env";
+import { toPublicErrorMessage } from "@/lib/supabase/jwt";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -23,7 +24,7 @@ export async function signIn(formData: FormData): Promise<ActionResult> {
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
-    return { ok: false, error: error.message };
+    return { ok: false, error: toPublicErrorMessage(error.message) };
   }
   redirect("/academy");
 }

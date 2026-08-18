@@ -7,11 +7,18 @@ import { useRouter } from "next/navigation";
 import { loginSchema } from "@/lib/schemas/academy";
 import { signIn } from "@/lib/actions/auth";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { toPublicErrorMessage } from "@/lib/supabase/jwt";
 import type { z } from "zod";
 
 type Values = z.infer<typeof loginSchema>;
 
-export function LoginForm({ unconfigured }: { unconfigured: boolean }) {
+export function LoginForm({
+  unconfigured,
+  unconfiguredMessage,
+}: {
+  unconfigured: boolean;
+  unconfiguredMessage: string;
+}) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -43,7 +50,7 @@ export function LoginForm({ unconfigured }: { unconfigured: boolean }) {
         startTransition(async () => {
           const result = await signIn(data);
           if (result && "ok" in result && !result.ok) {
-            setError(result.error);
+            setError(toPublicErrorMessage(result.error));
           }
         });
       })}
@@ -53,10 +60,16 @@ export function LoginForm({ unconfigured }: { unconfigured: boolean }) {
       <p className="helper">Email and password. Your progress is stored only after Supabase confirms the write.</p>
       {unconfigured ? (
         <div className="gg-alert gg-alert--error" role="alert">
-          Supabase credentials are not configured. Copy `.env.example` to `.env.local` and add project keys.
+          <span className="gg-alert__kicker">Error</span>
+          {unconfiguredMessage}
         </div>
       ) : null}
-      {error ? <div className="gg-alert gg-alert--error" role="alert">{error}</div> : null}
+      {error ? (
+        <div className="gg-alert gg-alert--error" role="alert">
+          <span className="gg-alert__kicker">Error</span>
+          {error}
+        </div>
+      ) : null}
       <div className="gg-field">
         <label className="gg-field__label" htmlFor="email">
           Email

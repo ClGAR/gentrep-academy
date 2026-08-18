@@ -43,7 +43,7 @@ test("Supabase fetch recovers from a transient future JWT response", async () =>
   const response = await wrappedFetch("https://example.test/rest/v1/profiles");
 
   assert.equal(calls, 2);
-  assert.deepEqual(delays, [750]);
+  assert.deepEqual(delays, [1000]);
   assert.equal(response.status, 200);
 });
 
@@ -63,6 +63,27 @@ test("Supabase fetch recognizes the Auth-style msg field", async () => {
   });
 
   const response = await wrappedFetch("https://example.test/auth/v1/user");
+
+  assert.equal(calls, 2);
+  assert.equal(response.status, 200);
+});
+
+test("Supabase fetch recovers from a nested future JWT error body", async () => {
+  let calls = 0;
+  const wrappedFetch = createSupabaseFetch({
+    fetchImpl: async () => {
+      calls += 1;
+      return calls === 1
+        ? Response.json(
+            { error: "JWT issued at future", hint: "clock skew" },
+            { status: 401 },
+          )
+        : Response.json({ ok: true });
+    },
+    sleep: async () => undefined,
+  });
+
+  const response = await wrappedFetch("https://example.test/rest/v1/profiles");
 
   assert.equal(calls, 2);
   assert.equal(response.status, 200);

@@ -113,6 +113,7 @@
 
 /* chat */
  .ga .chat{width:100%;margin-top:12px;background:var(--ga-card);border:1.5px solid var(--ga-line);border-radius:14px;
+       box-shadow:var(--gg-shadow-card);
       padding:13px 14px;display:flex;align-items:center;gap:12px;text-align:left;}
 .ga .tg {width:42px;height:42px;border-radius:12px;background:var(--ga-tg);display:grid;place-items:center;flex-shrink:0;}
 .ga .chat .left b {display:block;font-family:var(--gg-sans);font-size:15.5px;font-weight:700;color:var(--ga-ink);}
@@ -135,7 +136,7 @@
 .ga .node.done {background:var(--ga-gold);border-color:var(--ga-gold);}
 .ga .node.booked,.ga .node.waitlisted {border-color:var(--ga-gold);}
 .ga .node.missed,.ga .node.rejected {border-color:var(--ga-clay);color:var(--ga-clay);}
-.ga .req-card {flex:1;min-width:0;background:var(--ga-card);border:1.5px solid var(--ga-line);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.ga .req-card {flex:1;min-width:0;background:var(--ga-card);border:1.5px solid var(--ga-line);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:var(--gg-shadow-card);}
 .ga .req-card.active {border-color:var(--ga-blue);box-shadow:inset 0 0 0 1px var(--ga-blue);}
 .ga .req-card.missed {border-color:var(--ga-clay);}
 .ga .req-head {padding:14px 15px 13px;}
@@ -266,11 +267,29 @@
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}} .ga .fade {animation:fade .2s ease;}
 @keyframes up{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}} .ga .up {animation:up .24s ease;}
 
-/* desktop */
-@media(min-width:900px){ .ga .shell{display:flex;max-width:1240px;margin:0 auto;min-height:100vh;align-items:stretch;}
+/* desktop: sidebar stays put; only the main column scrolls */
+@media(min-width:900px){
+  html:has(.ga),
+  body:has(.ga) { height: 100%; overflow: hidden; }
+  .ga {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .ga .shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
   .ga .side {display:flex;flex-direction:column;width:280px;flex-shrink:0;gap:10px;padding:28px 20px;
-        background:var(--ga-card);border-right:1px solid var(--ga-line);position:sticky;top:0;height:100vh;overflow-y:auto;}
-  .ga .col {flex:1;max-width:100%;margin:0;padding:30px 34px 60px;}
+        background:rgba(252,250,245,.92);border-right:1px solid var(--ga-line);height:auto;overflow:hidden;backdrop-filter:blur(10px);}
+  .ga .col {flex:1;min-width:0;min-height:0;max-width:100%;margin:0;padding:30px 34px 60px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;}
   .ga .only-mobile {display:none !important;}
   .ga .foot {display:none;}
   .ga .modal {align-items:center;padding:24px;}
@@ -280,7 +299,7 @@
           font-family:var(--gg-sans);font-weight:800;font-size:14px;flex-shrink:0;}
   .ga .who b {display:block;font-family:var(--gg-sans);font-size:15px;color:var(--ga-ink);}
   .ga .who em {display:block;font-size:13px;color:var(--ga-mute);font-style:normal;}
-  .ga .side-nav {display:flex;flex-direction:column;gap:6px;padding-top:4px;}
+  .ga .side-nav {display:flex;flex-direction:column;flex:1;min-height:0;gap:6px;padding-top:4px;overflow-y:auto;}
   .ga .side-rank {display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 13px;border-radius:12px;
              background:transparent;color:var(--ga-ink);}
   .ga .side-rank.on {background:var(--ga-ink);color:var(--gg-bone);}
@@ -304,6 +323,8 @@
 /* print */
 @media print{
   @page{size:A4 portrait;margin:14mm;}
+  html:has(.ga), body:has(.ga), .ga {height:auto !important;overflow:visible !important;display:block !important;}
+  .ga .col {overflow:visible !important;height:auto !important;}
   .ga .shell, .ga .foot, .ga .no-print, .ga .cf-wrap, .ga .toast {display:none !important;}
   .ga .modal {position:static !important;background:#fff !important;padding:0 !important;display:block !important;}
   .ga .sheet {max-width:none !important;max-height:none !important;overflow:visible !important;border-radius:0 !important;box-shadow:none !important;padding:0 !important;}
@@ -328,9 +349,9 @@
   margin-top: 12px;
 }
 .ga .ga-alert.error {
-  border-color: var(--ga-clay);
+  border-color: rgba(176,32,46,.32);
   background: var(--ga-clay-bg);
-  color: var(--ga-clay);
+  color: var(--gg-error-strong);
 }
 .ga .ga-empty {
   border: 1.5px dashed var(--ga-sky);

@@ -1,5 +1,4 @@
-const FUTURE_JWT_MESSAGE = "JWT issued at future";
-const RETRY_DELAYS_MS = [750, 1500, 2500] as const;
+import { FUTURE_JWT_RETRY_DELAYS_MS, isFutureJwtMessage } from "@/lib/supabase/jwt";
 
 type SupabaseFetchOptions = {
   fetchImpl?: typeof fetch;
@@ -8,18 +7,12 @@ type SupabaseFetchOptions = {
 };
 
 async function isFutureJwtResponse(response: Response) {
-  if (response.status !== 401) return false;
+  if (response.status !== 401 && response.status !== 403) return false;
 
+  const raw = await response.clone().text();
+  if (isFutureJwtMessage(raw)) return true;
   try {
-    const body: unknown = await response.clone().json();
-    if (typeof body !== "object" || body === null) return false;
-    const message =
-      "message" in body
-        ? body.message
-        : "msg" in body
-          ? body.msg
-          : undefined;
-    return message === FUTURE_JWT_MESSAGE;
+    return isFutureJwtMessage(JSON.parse(raw) as unknown);
   } catch {
     return false;
   }
@@ -29,7 +22,7 @@ export function createSupabaseFetch({
   fetchImpl = fetch,
   sleep = (delayMs) =>
     new Promise((resolve) => setTimeout(resolve, delayMs)),
-  retryDelays = RETRY_DELAYS_MS,
+  retryDelays = FUTURE_JWT_RETRY_DELAYS_MS,
 }: SupabaseFetchOptions = {}): typeof fetch {
   return async (input, init) => {
     const request = new Request(input, init);

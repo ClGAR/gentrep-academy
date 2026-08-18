@@ -137,11 +137,21 @@ a { color: inherit; }
   padding: 13px 15px;
   color: var(--gg-blue);
   font-weight: 700;
+  font-size: 14px;
 }
 .gg-alert--error {
   border-color: rgba(176, 32, 46, 0.32);
   background: rgba(176, 32, 46, 0.07);
   color: var(--gg-error-strong);
+}
+.gg-alert__kicker {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gg-error);
+  margin-bottom: 4px;
 }
 .gg-empty {
   border: 1px dashed var(--gg-rule);
@@ -216,7 +226,13 @@ a { color: inherit; }
   font-weight: 400;
   line-height: 1;
 }
-.auth-shell .helper { margin-top: 12px; margin-bottom: 20px; }
+.auth-shell .eyebrow-dark { color: var(--gg-blue); }
+.auth-shell .gg-button--primary {
+  min-height: 62px;
+  border-radius: var(--gg-r-md);
+  padding: 16px 20px;
+  font-weight: 900;
+}
 
 .ops-shell {
   width: min(1120px, calc(100% - 32px));

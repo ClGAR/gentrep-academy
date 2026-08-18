@@ -24,6 +24,7 @@ import { NextActionBar } from "@/components/academy/NextActionBar";
 import { RankLadder } from "@/components/academy/RankLadder";
 import { RequirementTimeline } from "@/components/academy/RequirementTimeline";
 import { TeamChatCard } from "@/components/academy/TeamChatCard";
+import { toPublicErrorMessage } from "@/lib/supabase/jwt";
 import { eventDay, teamFullName, walkCompletedRequirement } from "@/components/academy/helpers";
 
 function demoCertificate(profile: DashboardData["profile"], rank: RankRecord): CertificateRecord {
@@ -161,7 +162,7 @@ export function AcademyDashboard({
     startTransition(async () => {
       const result = await action();
       if (!result.ok) {
-        setError(result.error ?? "That did not save.");
+        setError(toPublicErrorMessage(result.error ?? "That did not save."));
         return;
       }
       flash(success);
@@ -177,7 +178,7 @@ export function AcademyDashboard({
         rankId: view.selectedRank.id,
       });
       if (!result.ok) {
-        setError(result.error);
+        setError(toPublicErrorMessage(result.error));
         return;
       }
       const certificateId = result.data?.id;
@@ -296,7 +297,12 @@ export function AcademyDashboard({
             rankProgress={view.rankProgress}
             onRank={goRank}
           />
-          {error ? <div className="ga-alert error">{error}</div> : null}
+          {error ? (
+            <div className="ga-alert error" role="alert">
+              <span className="gg-alert__kicker">Error</span>
+              {error}
+            </div>
+          ) : null}
           <ActivationPlate
             rank={view.selectedRank}
             requirements={view.requirements}
