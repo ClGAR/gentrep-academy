@@ -1,47 +1,36 @@
 "use client";
 
-import { signOut } from "@/lib/actions/auth";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { DashboardData, RequirementView } from "@/lib/academy/types";
-import { GentrepMark } from "@/components/academy/GentrepMark";
 import { RankMark } from "@/components/academy/RankMark";
-import { GA } from "@/components/academy/tokens";
 import {
-  initials,
   rankInsigniaSize,
   rankIsComplete,
   rankLockMessage,
   requirementActionLabel,
-  teamFullName,
 } from "@/components/academy/helpers";
 
 export function AcademySidebar({
   data,
   next,
   complete,
-  onAbout,
   onRank,
   onNext,
 }: {
   data: DashboardData;
   next: RequirementView | null;
   complete: boolean;
-  onAbout: () => void;
   onRank: (code: string, locked: string | null) => void;
   onNext: () => void;
 }) {
+  const aboutCurrent = usePathname() === "/academy/about";
   return (
     <aside className="side" aria-label="Academy navigation">
-      <div className="brand">
-        <GentrepMark height={24} color={GA.navy} />
-        <span className="serif">Academy</span>
-      </div>
-      <div className="who">
-        <span className="avatar">{initials(data.profile.fullName)}</span>
-        <span>
-          <b>{data.profile.fullName}</b>
-          <em>{teamFullName(data.profile.teamName)}</em>
-        </span>
-      </div>
+      <Link className="brand side-brand" href="/academy">
+        <strong>GutGuard</strong>
+        <em>Academy</em>
+      </Link>
       <nav aria-label="Ranks" className="side-nav">
         {data.ranks.map((rank) => {
           const locked = rankLockMessage(
@@ -77,45 +66,14 @@ export function AcademySidebar({
             </button>
           );
         })}
+        <Link
+          className={`tap pill-btn side-about${aboutCurrent ? " on" : ""}`}
+          href="/academy/about"
+          aria-current={aboutCurrent ? "page" : undefined}
+        >
+          About Gentrep
+        </Link>
       </nav>
-      <button className="tap side-btn" onClick={onAbout}>
-        About Gentrep Academy
-      </button>
-      {(data.profile.roles.includes("staff") ||
-        data.profile.roles.includes("trainer") ||
-        data.profile.roles.includes("admin")) && (
-        <div className="ops-links">
-          {data.profile.roles.includes("staff") || data.profile.roles.includes("admin") ? (
-            <a className="tap side-btn" href="/staff/events">
-              Staff roster
-            </a>
-          ) : null}
-          {data.profile.roles.includes("trainer") || data.profile.roles.includes("admin") ? (
-            <a className="tap side-btn" href="/trainer/verifications">
-              Trainer desk
-            </a>
-          ) : null}
-          {data.profile.roles.includes("admin") ? (
-            <a className="tap side-btn" href="/admin">
-              Admin
-            </a>
-          ) : null}
-          <form action={signOut}>
-            <button className="tap side-btn" type="submit">
-              Sign out
-            </button>
-          </form>
-        </div>
-      )}
-      {!(data.profile.roles.includes("staff") ||
-        data.profile.roles.includes("trainer") ||
-        data.profile.roles.includes("admin")) && (
-        <form action={signOut}>
-          <button className="tap side-btn" type="submit">
-            Sign out
-          </button>
-        </form>
-      )}
       {!complete && next ? (
         <div className="side-next">
           <div className="eyebrow-dark">Do this next</div>

@@ -2,26 +2,17 @@
 
 import { TelegramIcon } from "@/components/academy/TelegramIcon";
 
-export function TeamChatCard({
-  teamName,
-  memberCount,
-  onOpen,
-}: {
-  teamName: string;
-  memberCount: number;
-  onOpen: () => void;
-}) {
+export function TeamChatCard({ teamName }: { teamName: string }) {
   return (
-    <button className="tap chat" onClick={onOpen}>
+    <div className="chat soon" role="status">
       <span className="tg">
         <TelegramIcon />
       </span>
       <span className="grow left">
+        <span className="soon-tag">Coming soon</span>
         <b>{teamName} chat</b>
-        <em>
-          {memberCount} members · ask before you go
-        </em>
+        <em>Telegram group chat. Not open yet.</em>
       </span>
-    </button>
+    </div>
   );
 }

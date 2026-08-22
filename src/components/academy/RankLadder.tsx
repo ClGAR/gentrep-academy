@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type {
   RankProgressRecord,
   RankRecord,
@@ -18,6 +20,7 @@ export function RankLadder({
   rankProgress: RankProgressRecord[];
   onRank: (code: string, locked: string | null) => void;
 }) {
+  const aboutCurrent = usePathname() === "/academy/about";
   return (
     <nav className="ladder noscroll only-mobile" aria-label="Ranks">
       {ranks.map((rank) => {
@@ -50,6 +53,13 @@ export function RankLadder({
           </button>
         );
       })}
+      <Link
+        className={`tap pill-btn${aboutCurrent ? " on" : ""}`}
+        href="/academy/about"
+        aria-current={aboutCurrent ? "page" : undefined}
+      >
+        About Gentrep
+      </Link>
     </nav>
   );
 }
