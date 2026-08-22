@@ -33,7 +33,7 @@ export function TrainerQueue({ rows }: { rows: TrainerQueueRow[] }) {
           {feedback.message}
         </div>
       ) : null}
-      <div className="ops-table-wrap">
+      <div className="admin-table-wrap">
         <table className="ops-table">
           <thead>
             <tr>

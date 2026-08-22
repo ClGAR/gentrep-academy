@@ -12,20 +12,18 @@ import { nextOpenRequirement } from "@/lib/academy/rules";
 import { certificateVerifyUrl } from "@/lib/academy/qr";
 import type { CertificateRecord, DashboardData, RankCode, RankRecord, RequirementView } from "@/lib/academy/types";
 import { cloneWalkCatalog } from "@/lib/academy/visual-fixture";
-import { AboutAcademy } from "@/components/academy/AboutAcademy";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
+import { AcademyTopbar } from "@/components/academy/AcademyTopbar";
 import { ActivationPlate } from "@/components/academy/ActivationPlate";
 import { CertificateView } from "@/components/academy/CertificateView";
 import { CompletionConfetti } from "@/components/academy/CompletionConfetti";
-import { DemoWalkLadder } from "@/components/academy/DemoWalkLadder";
 import { DocumentSheet } from "@/components/academy/DocumentSheet";
-import { MobileAcademyHeader } from "@/components/academy/MobileAcademyHeader";
 import { NextActionBar } from "@/components/academy/NextActionBar";
 import { RankLadder } from "@/components/academy/RankLadder";
 import { RequirementTimeline } from "@/components/academy/RequirementTimeline";
 import { TeamChatCard } from "@/components/academy/TeamChatCard";
 import { toPublicErrorMessage } from "@/lib/supabase/jwt";
-import { eventDay, teamFullName, walkCompletedRequirement } from "@/components/academy/helpers";
+import { eventDay, teamFullName } from "@/components/academy/helpers";
 
 function demoCertificate(profile: DashboardData["profile"], rank: RankRecord): CertificateRecord {
   return {
@@ -66,7 +64,6 @@ export function AcademyDashboard({
   const [docId, setDocId] = useState<string | null>(null);
   const [lang, setLang] = useState<"en" | "tl">("en");
   const [watched, setWatched] = useState<Record<string, boolean>>({});
-  const [about, setAbout] = useState(false);
   const [certOpen, setCertOpen] = useState(false);
   const [error, setError] = useState("");
   const [confetti, setConfetti] = useState(0);
@@ -224,40 +221,6 @@ export function AcademyDashboard({
     issueSelectedCertificate();
   }
 
-  function completeRank(code: RankCode) {
-    if (!fixture) return;
-    const rank = view.ranks.find((item) => item.code === code);
-    if (!rank) return;
-    setWalkByRank((current) => {
-      const nextWalk = { ...(current ?? seedWalk(data)) };
-      nextWalk[code] = (nextWalk[code] ?? []).map(walkCompletedRequirement);
-      return nextWalk;
-    });
-    setWalkCerts((current) => {
-      const list = current ?? data.certificates;
-      const issued = demoCertificate(data.profile, rank);
-      if (list.some((item) => item.rankId === rank.id && item.status === "issued")) return list;
-      return [...list, issued];
-    });
-    setWalkSelected(code);
-    setOpenReq(null);
-    setDocId(null);
-    setConfetti((value) => value + 1);
-    flash(`${rank.fullName} complete. Certificate ready.`);
-    window.setTimeout(() => setCertOpen(true), 420);
-  }
-
-  function resetWalk() {
-    if (!fixture) return;
-    setWalkByRank(seedWalk(data));
-    setWalkCerts([]);
-    setWalkSelected("BASE");
-    setOpenReq(null);
-    setDocId(null);
-    setCertOpen(false);
-    flash("Reset");
-  }
-
   function cancelRequirement(req: RequirementView) {
     if (!req.bookingId) return;
     run(() => cancelBookingAction({ bookingId: req.bookingId as string }), "Seat released");
@@ -281,22 +244,19 @@ export function AcademyDashboard({
           data={view}
           next={next}
           complete={complete}
-          onAbout={() => setAbout(true)}
           onRank={goRank}
           onNext={doNext}
         />
-        <main className="col">
-          <MobileAcademyHeader
-            name={view.profile.fullName}
-            teamName={view.profile.teamName}
-            onAbout={() => setAbout(true)}
-          />
+        <div className="stage">
+          <AcademyTopbar profile={view.profile} />
+          <main className="col">
           <RankLadder
             ranks={view.ranks}
             selectedCode={view.selectedRank.code}
             rankProgress={view.rankProgress}
             onRank={goRank}
           />
+          <div className="col-inner">
           {error ? (
             <div className="ga-alert error" role="alert">
               <span className="gg-alert__kicker">Error</span>
@@ -311,16 +271,7 @@ export function AcademyDashboard({
             missedCount={missedCount}
             complete={complete}
           />
-          {view.profile.teamTelegramUrl ? (
-            <TeamChatCard
-              teamName={teamFullName(view.profile.teamName)}
-              memberCount={view.profile.teamMemberCount}
-              onOpen={() => {
-                flash(`Opening ${view.profile.teamName ?? "team"} on Telegram…`);
-                window.open(view.profile.teamTelegramUrl ?? "https://t.me/", "_blank", "noopener,noreferrer");
-              }}
-            />
-          ) : null}
+          <TeamChatCard teamName={teamFullName(view.profile.teamName)} />
           <RequirementTimeline
             requirements={view.requirements}
             nextId={next?.id}
@@ -343,16 +294,9 @@ export function AcademyDashboard({
             onCancel={cancelRequirement}
             onSeeCertificate={seeCertificate}
           />
-          {fixture ? (
-            <DemoWalkLadder
-              ranks={view.ranks}
-              selectedName={view.selectedRank.name}
-              onComplete={completeRank}
-              onCertificate={openCertificate}
-              onReset={resetWalk}
-            />
-          ) : null}
-        </main>
+          </div>
+          </main>
+        </div>
       </div>
 
       {!complete && next ? <NextActionBar next={next} onNext={doNext} /> : null}
@@ -385,8 +329,6 @@ export function AcademyDashboard({
           }}
         />
       ) : null}
-
-      {about ? <AboutAcademy ranks={view.ranks} onClose={() => setAbout(false)} /> : null}
 
       {certOpen && certForView ? (
         <CertificateView

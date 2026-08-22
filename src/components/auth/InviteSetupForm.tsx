@@ -54,7 +54,7 @@ export function InviteSetupForm() {
             setError(toPublicErrorMessage(updateError.message));
             return;
           }
-          router.replace("/admin");
+          router.replace("/");
           router.refresh();
         });
       })}

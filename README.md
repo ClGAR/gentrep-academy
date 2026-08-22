@@ -28,7 +28,7 @@ Synthetic database identities use the reserved `gentrep.test` domain and have no
 
 - `supabase/migrations/20260813120000_init.sql` is immutable migration history.
 - `supabase/migrations/20260815090000_security_foundation.sql` is the forward security/correctness migration.
-- `supabase/seed.sql` contains shared rank, document, requirement, and event catalog data.
+- `supabase/seed.sql` contains shared rank, document, requirement, and event catalog data, plus development-only admin portal demo identities.
 - `supabase/staging_seed.sql` contains deterministic `[TEST]` identities and workflow fixtures.
 - `supabase/cleanup_mock.sql` removes only reserved synthetic identities and staging-only events; it preserves the shared catalog and invited admin.
 
@@ -43,10 +43,30 @@ Never run the staging seed or cleanup script against production.
 - `/academy/certificates/[id]`
 - `/staff/events`
 - `/trainer/verifications`
-- `/admin`
+- `/admin` Lifestyle operations desk (Super Admin, Clinician, Support)
+- `/admin/users` directory (Super Admin, Support)
+- `/admin/caseload` assigned members (Clinician, Super Admin)
+- `/admin/content` CMS
+- `/admin/tickets` support inbox
+- `/admin/audit` Super Admin only
 - `/certificates/verify/[certificateCode]` public minimum-field verification
 
 The legacy `/verify/[certificateId]` shape redirects to the canonical verification route.
+
+## Local admin demo (development only)
+
+`npx supabase db reset` loads catalog data plus these interactive accounts. Password for all: `DemoPassword123!`
+
+| Email | Lands on |
+|---|---|
+| `demo.admin@gentrep.academy` | `/admin` — People, CMS, Tickets, Audit |
+| `demo.clinician@gentrep.academy` | `/admin` — Today, Caseload, Content |
+| `demo.support@gentrep.academy` | `/admin` — Today, People, Content, Tickets |
+| `demo.staff@gentrep.academy` | `/staff/events` |
+| `demo.trainer@gentrep.academy` | `/trainer/verifications` |
+| `demo.member@gentrep.academy` | `/academy` |
+
+Do not load this seed against production. Staging still uses invited accounts from `npm run staging:invite-admin`, not these demo passwords.
 
 ## Verification
 

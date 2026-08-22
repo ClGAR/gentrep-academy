@@ -1,5 +1,7 @@
--- Shared catalog data only. Synthetic staging identities live in staging_seed.sql.
+-- Shared catalog data, plus development-only admin portal demo identities.
+-- Synthetic staging identities (no password) live in staging_seed.sql.
 -- Safe to rerun: stable IDs and conflict handling keep the catalog deterministic.
+-- Never load demo portal passwords against production.
 
 create extension if not exists pgcrypto;
 
@@ -114,3 +116,293 @@ on conflict (id) do update set
   capacity = excluded.capacity,
   status = excluded.status,
   is_demo = true;
+
+-- Development-only interactive accounts for /admin, /staff, /trainer, /academy.
+-- Password for all: DemoPassword123!
+
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000001',
+    'authenticated', 'authenticated', 'demo.admin@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Super Admin"}',
+    now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000002',
+    'authenticated', 'authenticated', 'demo.clinician@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Clinician"}',
+    now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000003',
+    'authenticated', 'authenticated', 'demo.support@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Support"}',
+    now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000004',
+    'authenticated', 'authenticated', 'demo.staff@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Staff"}',
+    now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000005',
+    'authenticated', 'authenticated', 'demo.trainer@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Trainer"}',
+    now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000006',
+    'authenticated', 'authenticated', 'demo.member@gentrep.academy',
+    extensions.crypt('DemoPassword123!', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Member"}',
+    now(), now(), '', '', '', ''
+  )
+on conflict (id) do update set
+  email = excluded.email,
+  encrypted_password = excluded.encrypted_password,
+  email_confirmed_at = excluded.email_confirmed_at,
+  raw_app_meta_data = excluded.raw_app_meta_data,
+  raw_user_meta_data = excluded.raw_user_meta_data,
+  updated_at = now();
+
+do $ident$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'auth'
+      and table_name = 'identities'
+      and column_name = 'provider_id'
+  ) then
+    insert into auth.identities (
+      id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at
+    )
+    select
+      u.id,
+      u.id,
+      jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+      'email',
+      u.id::text,
+      now(),
+      now(),
+      now()
+    from auth.users u
+    where u.id in (
+      '00000000-0000-4000-8000-000000000001',
+      '00000000-0000-4000-8000-000000000002',
+      '00000000-0000-4000-8000-000000000003',
+      '00000000-0000-4000-8000-000000000004',
+      '00000000-0000-4000-8000-000000000005',
+      '00000000-0000-4000-8000-000000000006'
+    )
+    on conflict do nothing;
+  else
+    insert into auth.identities (
+      id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+    )
+    select
+      u.id,
+      u.id,
+      jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+      'email',
+      now(),
+      now(),
+      now()
+    from auth.users u
+    where u.id in (
+      '00000000-0000-4000-8000-000000000001',
+      '00000000-0000-4000-8000-000000000002',
+      '00000000-0000-4000-8000-000000000003',
+      '00000000-0000-4000-8000-000000000004',
+      '00000000-0000-4000-8000-000000000005',
+      '00000000-0000-4000-8000-000000000006'
+    )
+    on conflict do nothing;
+  end if;
+end
+$ident$;
+
+update public.profiles p
+set
+  full_name = u.raw_user_meta_data->>'full_name',
+  email = u.email,
+  member_card = 'GG-' || right(u.id::text, 3),
+  team_id = '11111111-1111-4111-8111-111111111111',
+  account_status = 'active',
+  is_demo = true
+from auth.users u
+where p.id = u.id
+  and u.id in (
+    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000002',
+    '00000000-0000-4000-8000-000000000003',
+    '00000000-0000-4000-8000-000000000004',
+    '00000000-0000-4000-8000-000000000005',
+    '00000000-0000-4000-8000-000000000006'
+  );
+
+insert into public.user_roles (user_id, role)
+values
+  ('00000000-0000-4000-8000-000000000001', 'admin'),
+  ('00000000-0000-4000-8000-000000000002', 'clinician'),
+  ('00000000-0000-4000-8000-000000000003', 'support'),
+  ('00000000-0000-4000-8000-000000000004', 'staff'),
+  ('00000000-0000-4000-8000-000000000005', 'trainer')
+on conflict (user_id, role) do nothing;
+
+insert into public.team_members (team_id, user_id)
+select '11111111-1111-4111-8111-111111111111', id
+from public.profiles
+where id in (
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002',
+  '00000000-0000-4000-8000-000000000003',
+  '00000000-0000-4000-8000-000000000004',
+  '00000000-0000-4000-8000-000000000005',
+  '00000000-0000-4000-8000-000000000006'
+)
+on conflict (team_id, user_id) do nothing;
+
+insert into public.clinician_assignments (clinician_id, member_id, status)
+values (
+  '00000000-0000-4000-8000-000000000002',
+  '00000000-0000-4000-8000-000000000006',
+  'active'
+)
+on conflict (clinician_id, member_id) do update
+set status = 'active', ended_at = null, assigned_at = now();
+
+insert into public.staff_notes (id, subject_user_id, author_id, kind, body)
+values
+  (
+    'a2000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000006',
+    '00000000-0000-4000-8000-000000000002',
+    'clinical',
+    'Intake complete. Continue daily food, no medical claims in counselling.'
+  ),
+  (
+    'a2000000-0000-4000-8000-000000000002',
+    '00000000-0000-4000-8000-000000000006',
+    '00000000-0000-4000-8000-000000000003',
+    'support',
+    'Member asked how to reset a password. Pointed them to the invitation email.'
+  )
+on conflict (id) do update
+set body = excluded.body, kind = excluded.kind, author_id = excluded.author_id;
+
+insert into public.support_cases (id, member_id, opened_by, assignee_id, title, topic, status, priority)
+values (
+  'a2000000-0000-4000-8000-000000000011',
+  '00000000-0000-4000-8000-000000000006',
+  '00000000-0000-4000-8000-000000000003',
+  '00000000-0000-4000-8000-000000000003',
+  'Card number not showing',
+  'account',
+  'open',
+  'normal'
+)
+on conflict (id) do update
+set title = excluded.title, topic = excluded.topic, status = excluded.status, priority = excluded.priority;
+
+insert into public.cms_entries (
+  id, collection_id, slug, title, excerpt, body, locale, status, clinical_review, version, published_at, published_by, updated_by
+)
+values
+  (
+    'e2000000-0000-4000-8000-000000000001',
+    'c1000000-0000-4000-8000-000000000004',
+    'hold-policy',
+    'When to place an account hold',
+    'Use a hold for access or identity issues, never for clinical disagreement.',
+    'Place a hold when a member cannot be identified, or when access must pause. Lift the hold when the account is verified. Do not discuss clinical notes on this desk.',
+    'en',
+    'published',
+    'not_required',
+    1,
+    now(),
+    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000001'
+  ),
+  (
+    'e2000000-0000-4000-8000-000000000002',
+    'c1000000-0000-4000-8000-000000000001',
+    'daily-food',
+    'What we say about daily food',
+    'Food taken daily. No cure language.',
+    'Speak only to what the product is: food, taken daily. Never promise a cure, never diagnose, and never discourage anyone from seeing a doctor.',
+    'en',
+    'published',
+    'not_required',
+    1,
+    now(),
+    '00000000-0000-4000-8000-000000000001',
+    '00000000-0000-4000-8000-000000000001'
+  ),
+  (
+    'e2000000-0000-4000-8000-000000000003',
+    'c1000000-0000-4000-8000-000000000002',
+    'intake-protocol',
+    'First-week intake protocol',
+    'Waiting on dietitian review before it can go live.',
+    'Week one: confirm daily intake, hydration, and that no medical claims were used in the invite conversation. Escalate clinical questions; do not invent protocol.',
+    'en',
+    'in_review',
+    'pending',
+    1,
+    null,
+    null,
+    '00000000-0000-4000-8000-000000000002'
+  ),
+  (
+    'e2000000-0000-4000-8000-000000000004',
+    'c1000000-0000-4000-8000-000000000003',
+    'product-claims-draft',
+    'Product language (draft)',
+    'Claims stay off the live site until Super Admin publishes an approved review.',
+    'Draft only. Do not publish until a dietitian approves this copy. No disease or cure language.',
+    'en',
+    'draft',
+    'pending',
+    1,
+    null,
+    null,
+    '00000000-0000-4000-8000-000000000001'
+  )
+on conflict (id) do update set
+  title = excluded.title,
+  excerpt = excluded.excerpt,
+  body = excluded.body,
+  status = excluded.status,
+  clinical_review = excluded.clinical_review,
+  published_at = excluded.published_at,
+  published_by = excluded.published_by,
+  updated_by = excluded.updated_by;
+
+insert into public.cms_revisions (id, entry_id, version, snapshot, editor_id)
+select
+  ('a2000000-0000-4000-8000-00000000002' || n)::uuid,
+  e.id,
+  e.version,
+  to_jsonb(e),
+  e.updated_by
+from public.cms_entries e
+join (values
+  (1, 'e2000000-0000-4000-8000-000000000001'::uuid),
+  (2, 'e2000000-0000-4000-8000-000000000002'::uuid),
+  (3, 'e2000000-0000-4000-8000-000000000003'::uuid),
+  (4, 'e2000000-0000-4000-8000-000000000004'::uuid)
+) as x(n, id) on x.id = e.id
+on conflict (entry_id, version) do update
+set snapshot = excluded.snapshot, editor_id = excluded.editor_id;

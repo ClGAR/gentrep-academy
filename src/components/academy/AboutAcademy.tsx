@@ -1,10 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import type { RankRecord } from "@/lib/academy/types";
-import {
-  AcademyDialog,
-  AcademyDialogCloseButton,
-} from "@/components/academy/AcademyDialog";
 import { RankMark } from "@/components/academy/RankMark";
 import { rankInsigniaSize } from "@/components/academy/helpers";
 
@@ -24,26 +21,16 @@ const CHANGE_ROWS = [
   ["How long does a level take?", "Work through each posted requirement at the pace available to you."],
 ] as const;
 
-export function AboutAcademy({
-  ranks,
-  onClose,
-}: {
-  ranks: RankRecord[];
-  onClose: () => void;
-}) {
+export function AboutAcademy({ ranks }: { ranks: RankRecord[] }) {
   return (
-    <AcademyDialog label="About Gentrep Academy" onClose={onClose}>
-      <div className="sheet-head">
-        <div>
-          <h2 className="ant h1">About Gentrep Academy</h2>
-          <p className="fine">Read this once. About five minutes.</p>
-        </div>
-        <AcademyDialogCloseButton onClose={onClose} />
-      </div>
+    <article className="about-page">
+      <p className="eyebrow-dark">Gentrep Academy</p>
+      <h1 className="ant h1">About Gentrep Academy</h1>
+      <p className="fine">Read this once. About five minutes.</p>
       <p className="lead">
         The Academy is where you learn this business, one level at a time. Every level is a short course made of items you review, sessions you attend in person, and demonstrations your assigned trainer verifies. You never record your own attendance or sign-off — that is what makes each completion worth something.
       </p>
-      <h3 className="sec mt">The five levels</h3>
+      <h2 className="sec mt">The five levels</h2>
       {ranks.map((rank) => (
         <div className="about-lvl" key={rank.id}>
           <RankMark
@@ -59,7 +46,7 @@ export function AboutAcademy({
           </div>
         </div>
       ))}
-      <h3 className="sec mt">How a course is proven</h3>
+      <h2 className="sec mt">How a course is proven</h2>
       <div className="about-table">
         {PROOF_ROWS.map(([title, body]) => (
           <div key={title}>
@@ -68,7 +55,7 @@ export function AboutAcademy({
           </div>
         ))}
       </div>
-      <h3 className="sec mt">If something changes</h3>
+      <h2 className="sec mt">If something changes</h2>
       <div className="about-table">
         {CHANGE_ROWS.map(([title, body]) => (
           <div key={title}>
@@ -81,9 +68,9 @@ export function AboutAcademy({
         The app only keeps the record. What you actually learn happens in the room — from the people, the stories and the questions you ask there.{" "}
         <b>See you Saturday.</b>
       </div>
-      <button className="tap btn navy wide" onClick={onClose}>
-        Got it
-      </button>
-    </AcademyDialog>
+      <Link className="tap btn navy wide" href="/academy">
+        Back to the Academy
+      </Link>
+    </article>
   );
 }

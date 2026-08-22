@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/lib/academy/rules.test.ts src/lib/supabase/fetch.test.ts src/lib/supabase/jwt.test.ts",
+    "test": "tsx --test src/lib/academy/rules.test.ts src/lib/supabase/fetch.test.ts src/lib/supabase/jwt.test.ts src/lib/admin/rbac.test.ts src/lib/admin/cms.test.ts",
     "test:db": "npx --no-install supabase test db supabase/tests/database",
     "test:db:concurrency": "node scripts/test-progression-concurrency.mjs",
     "test:all": "npm run test && npm run test:db && npm run test:db:concurrency",

@@ -24,7 +24,10 @@ export function getSiteUrl() {
 }
 
 export function getServiceRoleKey() {
-  return readPublicEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return (
+    readPublicEnv(process.env.SUPABASE_SERVICE_ROLE_KEY) ??
+    readPublicEnv(process.env.SUPABASE_SECRET_KEY)
+  );
 }
 
 export function missingSupabaseConfigMessage() {
